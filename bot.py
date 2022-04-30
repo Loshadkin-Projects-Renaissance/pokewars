@@ -2,16 +2,13 @@
 import os
 import telebot
 import time
-import telebot
 import random
-import info
 import threading
-from emoji import emojize
 from telebot import types
 from pymongo import MongoClient
 from emoji import emojize
 
-
+import config
 
 from requests.exceptions import ReadTimeout
 from requests.exceptions import ConnectionError
@@ -19,9 +16,9 @@ from requests.exceptions import ConnectionError
 
 notclick=0
 
-token = os.environ['TELEGRAM_TOKEN']
+token = config.bot_token
 bot = telebot.TeleBot(token)
-vip=[441399484, 55888804]
+vip=[]
 games={}
 skills=[]
 
@@ -33,10 +30,12 @@ ban=[]
 timers=[]
 pokeban=[]
 
+admin =  792414733# 441399484
 
-client1=os.environ['database']
+
+client1=config.database_url
 client=MongoClient(client1)
-db=client.pokewars
+db=client.pokewarsbpl
 users=db.users
 chats=db.chats
 
@@ -49,13 +48,10 @@ symbollist=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q',
 def medit(message_text,chat_id, message_id,reply_markup=None,parse_mode='Markdown'):
     return bot.edit_message_text(chat_id=chat_id,message_id=message_id,text=message_text,reply_markup=reply_markup,
                                  parse_mode=parse_mode)
-@bot.message_handler(commands=['pokerub'])
-def poketyigfh(m):
-  users.update_one({'id':441399484},{'$set':{'pokemons2.rubenis':createruby('rubenis',0)}})
 
 @bot.message_handler(commands=['update'])
 def spammm(m):
-      if m.from_user.id==441399484:
+      if m.from_user.id==admin:
        #   users.update_many({},{'$set':{'ruby':0}})
          # users.update_many({},{'$set':{'pokemons2':{}}})
           x=users.find({})
@@ -84,7 +80,7 @@ def statssss(m):
 
 @bot.message_handler(commands=['tests'])
 def tests(m):
-   if m.from_user.id==441399484:
+   if m.from_user.id==admin:
            i=0
            z=0
            x=400000
@@ -95,7 +91,7 @@ def tests(m):
               if g!=1:
                    i-=1
            print(z)
-           
+
 def huntt(id, chatid, pokemon):
   x=users.find_one({'id':id})
   if pokemon not in rubypokes:
@@ -143,8 +139,8 @@ def huntt(id, chatid, pokemon):
     bot.send_message(chatid, 'Покемон '+pokemon['name']+' пользователя '+x['name']+' вернулся с охоты!\nПринесённое золото: '+str(earned)+'\n'+
                 'Умножено ли золото на 2 (только для золотых): '+level+'\n'+pupa)
     users.update_one({'id':id},{'$inc':{'money':earned}})
-    
-  else: 
+
+  else:
     earned=0
     i=0
     try:
@@ -194,19 +190,19 @@ def huntallll(m):
             for ids in x['pokemons']:
                   if x['pokemons'][ids]['hunting']==0:
                          users.update_one({'id':m.from_user.id},{'$set':{'pokemons.'+ids+'.hunting':1}})
-                         t=threading.Timer(1800,huntt,args=[m.from_user.id, m.from_user.id, ids])
+                         t=threading.Timer(1800,huntt,args=[m.from_user.id, m.chat.id, ids])
                          t.start()
             for ids2 in x['pokemons2']:
                   if x['pokemons2'][ids2]['hunting']==0:
                          users.update_one({'id':m.from_user.id},{'$set':{'pokemons2.'+ids2+'.hunting':1}})
-                         t=threading.Timer(1800,huntt,args=[m.from_user.id, m.from_user.id, ids2])
+                         t=threading.Timer(1800,huntt,args=[m.from_user.id, m.chat.id, ids2])
                          t.start()
             bot.send_message(m.chat.id, 'Вы отправили всех готовых покемонов на охоту. Вернутся через 30 минут.')
             
             
 @bot.message_handler(commands=['testhuntall'])
 def huntallll(m):
- if m.from_user.id==441399484:
+ if m.from_user.id==admin:
         x=users.find_one({'id':m.from_user.id})
         if x!=None:
             for ids in x['pokemons']:
@@ -217,7 +213,7 @@ def huntallll(m):
             for ids2 in x['pokemons2']:
                   if x['pokemons2'][ids2]['hunting']==0:
                          users.update_one({'id':m.from_user.id},{'$set':{'pokemons2.'+ids2+'.hunting':1}})
-                         t=threading.Timer(10,huntt,args=[m.from_user.id, m.from_user.id, ids2])
+                         t=threading.Timer(10,huntt,args=[m.from_user.id, m.chat.id, ids2])
                          t.start()  
             bot.send_message(m.chat.id, 'Вы отправили всех готовых покемонов на охоту. Вернутся через 10 сек.')
 
@@ -245,9 +241,34 @@ def suckdick(m):
 
 
 
+
+@bot.message_handler(commands=['gextra'])
+def extra(m):
+   if m.from_user.id==admin:
+      gold=random.randint(1,100)
+      gold='(золотой!!!) '
+      pokemon='gold'
+      i=0
+      for ids in pokemons:
+          i+=1   
+      pokechance=40/(i*0.06)
+      come=[]
+      for ids in elita:
+               come.append(ids)
+      if len(come)>0:
+        poke=random.choice(come)
+      else:
+        poke=random.choice(basepokes)
+      kb=types.InlineKeyboardMarkup()
+      kb.add(types.InlineKeyboardButton(text='Поймать', callback_data=pokemon+poke))
+      m=bot.send_message(m.chat.id, 'Обнаружен *'+gold+'*покемон '+pokemons[poke]['name']+'! Его крутость: '+str(pokemons[poke]['cool'])+'. Жмите кнопку ниже, чтобы попытаться поймать.',reply_markup=kb,parse_mode='markdown')
+      bot.pin_chat_message(m.chat.id, m.message_id, disable_notification=True)
+
+
+
 @bot.message_handler(commands=['extra'])
 def extra(m):
-   if m.from_user.id==441399484:
+   if m.from_user.id==admin:
       gold=random.randint(1,100)
       if gold==1:
             gold='(золотой!!!) '
@@ -270,28 +291,30 @@ def extra(m):
       kb.add(types.InlineKeyboardButton(text='Поймать', callback_data=pokemon+poke))
       m=bot.send_message(m.chat.id, 'Обнаружен *'+gold+'*покемон '+pokemons[poke]['name']+'! Его крутость: '+str(pokemons[poke]['cool'])+'. Жмите кнопку ниже, чтобы попытаться поймать.',reply_markup=kb,parse_mode='markdown')
       bot.pin_chat_message(m.chat.id, m.message_id, disable_notification=True)
-                      
 
 @bot.message_handler(commands=['hunt'])
 def hunt(m):
- if m.from_user.id not in ban:
-   x=banns(m.from_user.id, m.chat.id, m.from_user.first_name)
-   if x==0:
+    if m.from_user.id in ban:
+        return
+    x=banns(m.from_user.id, m.chat.id, m.from_user.first_name)
+    if x!=0:
+        bot.send_message(m.chat.id, 'Ошибка!')
+        return
     kb=types.InlineKeyboardMarkup()
-    x=users.find_one({'id':m.from_user.id})
-    if x!=None:
-     for ids in x['pokemons']:
-      if x['pokemons'][ids]['hunting']!=1:
-        kb.add(types.InlineKeyboardButton(text=pokemons[ids]['name'], callback_data=str(m.from_user.id)+' earn'+ids))
-     bot.send_message(m.chat.id, m.from_user.first_name+', какого покемона вы хотите отправить на охоту?', reply_markup=kb)
-    else:
-           bot.send_message(m.chat.id, 'Ошибка!')
-    
-    
-    
+    user=users.find_one({'id':m.from_user.id})
+    if not user:
+        return
+    if not [pokemon for pokemon in user['pokemons'] if user['pokemons'][pokemon]['hunting']==0]:
+        bot.send_message(m.chat.id, 'Все покемоны на охоте!')
+        return
+    for pokemon in user['pokemons']:
+        if user['pokemons'][pokemon]['hunting']!=1:
+            kb.add(types.InlineKeyboardButton(text=pokemons[pokemon]['name'], callback_data=str(m.from_user.id)+' earn'+pokemon))
+    bot.send_message(m.chat.id, m.from_user.first_name+', какого покемона вы хотите отправить на охоту?', reply_markup=kb)
+
 @bot.message_handler(commands=['give'])
 def give(m):
-  if m.from_user.id==441399484:
+  if m.from_user.id==admin:
     x=m.text.split(' ')
     try:
       golden=''
@@ -347,23 +370,8 @@ def unbannn(id):
       except:
            pass
 
-pokemonlist=['dildak','loshod','penis','zaluper','pikachu','pedro','bulbazaur','mayt','psyduck','zhopa','moxnatka','charmander',
-            'diglet','golem','sidot','traxer', 'pizdak','tyxlomon','morzh','penisdetrov','gandonio','spermostrel','yebator','egg',
-            'graveler','tirog','eldro4illo','vyper','sizor','myavs','bulatpidor','ebusobak','slagma','pupa','lupa']
-
-basepokes=['dildak','loshod','penis','zaluper','zhopa','sidot']
-
-elita=['pikachu','pedro','bulbazaur','psyduck', 'moxnatka','charmander','diglet','golem','sidot','traxer','tyxlomon','morzh',
-       'penisdetrov','gandonio','spermostrel','yebator','egg','graveler','tirog','eldro4illo','vyper','sizor','myavs','bulatpidor','ebusobak',
-      'slagma','pupa','lupa']
-
-elitaweak=['moxnatka','diglet','traxer','penis','gandonio','egg','sizor','ebusobak','ultrapoke']
-
-rubypokes=['rubenis','crystaler','blyadomon','moldres','pupitar','aron','sfil']
-
-
-
-pokemons={'dildak':{'cool':10,
+pokemons={
+          'dildak':{'cool':10,
                    'name':'Дилдак'},
           'loshod':{'cool':25,
                    'name':'Лошод'},
@@ -455,7 +463,6 @@ pokemons={'dildak':{'cool':10,
                    'name':'Ультрапокес'},
           'pasyuk':{'cool':100,
                    'name':'Пасюк'}
-                   
 }
 
 rubypokemons={
@@ -480,20 +487,28 @@ rubypokemons={
     'sfil':{'cool':1000000,
               'name':'Сфил',
               'cost':13000},
-
-
 }
 
+pokemonlist = pokemons.keys()
+basepokes=['dildak','loshod','penis','zaluper','zhopa','sidot']
 
-#@bot.message_handler(commands=['evolve'])
-#def evolve(m):
-#    x=users.find_one({'id':m.from_user.id})
-#    if x!=None:
-#     if x['money']>=500:
-#      kb=types.InlineKeyboardMarkup()
-#      for ids in x['pokemons']:
-#        kb.add(types.InlineKeyboardButton(text=pokemons[ids]['name'], callback_data=str(m.from_user.id)+' evolve'+ids))
-#      bot.send_message(m.chat.id, m.from_user.first_name+', какого покемона вы хотите попытаться эволюционировать? Цена: 500 голды. Шанс: 15%.', reply_markup=kb)
+elita=['pikachu','pedro','bulbazaur','psyduck', 'moxnatka','charmander','diglet','golem','sidot','traxer','tyxlomon','morzh',
+       'penisdetrov','gandonio','spermostrel','yebator','egg','graveler','tirog','eldro4illo','vyper','sizor','myavs','bulatpidor','ebusobak',
+      'slagma','pupa','lupa']
+
+elitaweak=['moxnatka','diglet','traxer','penis','gandonio','egg','sizor','ebusobak','ultrapoke']
+
+rubypokes=['rubenis','crystaler','blyadomon','moldres','pupitar','aron','sfil']
+
+@bot.message_handler(commands=['evolve'])
+def evolve(m):
+    x=users.find_one({'id':m.from_user.id})
+    if x!=None:
+     if x['money']>=500:
+      kb=types.InlineKeyboardMarkup()
+      for ids in x['pokemons']:
+        kb.add(types.InlineKeyboardButton(text=pokemons[ids]['name'], callback_data=str(m.from_user.id)+' evolve'+ids))
+      bot.send_message(m.chat.id, m.from_user.first_name+', какого покемона вы хотите попытаться эволюционировать? Цена: 500 голды. Шанс: 15%.', reply_markup=kb)
 
 
 @bot.message_handler(commands=['upgrade'])
@@ -649,29 +664,33 @@ def givegoldd(m):
     except:
         pass
 
-
      
 @bot.message_handler(commands=['buyruby'])
-def traderuby(m):
-    x=users.find_one({'id':m.from_user.id})
-    if x!=None:
-        y=m.text.split(' ')
-        if len(y)==2:
-            try:
-              ruby=int(y[1])
-              if ruby>0:
-                i=ruby*100000
-                if x['money']>=i:
-                    users.update_one({'id':m.from_user.id},{'$inc':{'money':-i}})
-                    users.update_one({'id':m.from_user.id},{'$inc':{'ruby':ruby}})
-                    bot.send_message(m.chat.id, 'Вы успешно обменяли '+str(int(i/1000))+'к золота на '+str(ruby)+' рубин(ов)!')
-                else:
-                    bot.send_message(m.chat.id, 'Недостаточно золота! (курс: 100к золота за 1 рубин).')
-              else:
-                  bot.send_message(m.chat.id, 'Введите число больше нуля!')
-            except:
-                 bot.send_message(m.chat.id, 'Неверный формат!')
-
+def buyruby_handler(m):
+    user = users.find_one({'id':m.from_user.id})
+    if not user:
+        bot.reply_to(m, 'Вы не зарегистрированы в боте. Напишите в чат хоть что нибудь (не команду).')
+        # везде убрать нахуй это сообщение - пусть регистрирует
+        return
+    if m.text.count(' ') != 2:
+        bot.reply_to(m, 'Неверный формат!')
+        return      
+    count = m.text.split(' ')[1]
+    if not count.isdigit():
+        bot.reply_to(m, 'Неверный формат!')
+        return
+    count = int(count)
+    if ruby<=0:
+        bot.reply_to(m, 'Введите число больше нуля!')
+        return
+    price = count*100000
+    if user['money'] < price:
+        bot.reply_to(m, 'Недостаточно золота! (курс: 100к золота за 1 рубин).')
+        return
+    users.update_one({'id':m.from_user.id},{'$inc':{'money':-i}})
+    users.update_one({'id':m.from_user.id},{'$inc':{'ruby':ruby}})
+    bot.send_message(m.chat.id, 'Вы успешно обменяли '+str(int(i/1000))+'к золота на '+str(ruby)+' рубин(ов)!')
+            
 
 @bot.message_handler(commands=['pokeshop'])
 def pokeshopp(m):
@@ -691,7 +710,7 @@ def toppp(m):
     top2={'name':'Не определено'}
     top3={'name':'Не определено'}
     for ids in x:
-     if ids['id']!=441399484:
+     if ids['id']!=admin:
         summ1=0
         for idss in ids['pokemons']:
             summ1+=ids['pokemons'][idss]['cool']
@@ -702,7 +721,7 @@ def toppp(m):
             top1=ids
     x=users.find({})       
     for ids2 in x:
-      if ids2['id']!=441399484:
+      if ids2['id']!=admin:
         summ2=0
         for idss2 in ids2['pokemons']:
             summ2+=ids2['pokemons'][idss2]['cool']
@@ -713,7 +732,7 @@ def toppp(m):
             top2=ids2
     x=users.find({})       
     for ids3 in x:
-      if ids3['id']!=441399484:
+      if ids3['id']!=admin:
         summ3=0
         for idss3 in ids3['pokemons']:
             summ3+=ids3['pokemons'][idss3]['cool']
@@ -1132,7 +1151,7 @@ def createuser(id):
              'pokemons2':{},
              'ruby':0
             }
-  
+
 if True:
  try:
    print('7777')
@@ -1140,11 +1159,13 @@ if True:
    for ids in x:
      for idss in ids['pokemons']:
         users.update_one({'id':ids['id']},{'$set':{'pokemons.'+idss+'.hunting':0}})
+        huntt(ids['id'], admin, idss) if ids['pokemons'][idss]['hunting'] else None
      for idsss in ids['pokemons2']:
         users.update_one({'id':ids['id']},{'$set':{'pokemons2.'+idsss+'.hunting':0}})
-   t=threading.Timer(300,dailypoke,args=[-1001256539790])
+        huntt(ids['id'], admin, idsss) if ids['pokemons2'][idsss]['hunting'] else None
+   t=threading.Timer(300,dailypoke,args=[-1001721954459])
    t.start()
-   bot.send_message(-1001256539790,'Бот был перезагружен!')
+   bot.send_message(-1001721954459,'Бот был перезагружен! Не переживайте, ваши покемоны вернулись с охоты!')
    bot.polling(none_stop=True,timeout=600)
  except:
         print('!!! READTIME OUT !!!') 
